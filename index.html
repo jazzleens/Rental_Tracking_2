@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PropertyLedger</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <nav class="sidebar">
+            <div class="logo">
+                <div class="logo-t">PropertyLedger</div>
+                <div class="logo-s">Rental Manager · USA</div>
+            </div>
+            <div class="nl">Navigation</div>
+            <div class="ni active" onclick="setView('dashboard')"><span>⊞</span> Dashboard</div>
+            <div class="ni" onclick="setView('properties')"><span>🏠</span> Properties</div>
+            <div class="ni" onclick="setView('rentledger')"><span>◫</span> Rent Ledger</div>
+            <div class="ni" onclick="setView('transactions')"><span>↕</span> Transactions</div>
+            <div class="ni" onclick="setView('cashflow')"><span>∿</span> Cash Flow</div>
+            <div class="ni" onclick="setView('violations')"><span>⚠</span> Violations</div>
+            <div class="ni" onclick="setView('taxreport')"><span>§</span> Tax Report</div>
+            <div style="margin-top:18px">
+                <div class="nl">Properties</div>
+                <div id="sb-props"></div>
+            </div>
+        </nav>
+
+        <div class="main">
+            <div class="topbar">
+                <div>
+                    <div class="tb-t" id="v-title">Dashboard</div>
+                    <div class="tb-s" id="v-sub">Overview for all properties</div>
+                </div>
+                <div class="tb-r">
+                    <select class="ysel" id="yr-sel" onchange="renderAll()">
+                        <option value="2027">2027</option>
+                        <option value="2026">2026</option>
+                        <option value="2025" selected>2025</option>
+                        <option value="2024">2024</option>
+                    </select>
+                    <button class="bg" onclick="openTxnModal(null)">+ Transaction</button>
+                    <button class="bg" onclick="openUnitModal(null)">+ Unit</button>
+                    <button class="btn" onclick="openPropModal(null)">+ Property</button>
+                </div>
+            </div>
+
+            <div class="content">
+                <!-- DASHBOARD -->
+                <div class="view active" id="view-dashboard">
+                    <div class="sg" id="sg"></div>
+                    <div id="od-alert"></div>
+                    <div class="g2">
+                        <div>
+                            <div class="sh"><div class="st">Income by Property</div></div>
+                            <div class="tc" id="inc-tbl"></div>
+                        </div>
+                        <div>
+                            <div class="sh"><div class="st">Expenses by Category</div></div>
+                            <div class="tc" id="exp-tbl"></div>
+                        </div>
+                    </div>
+                    <div class="sh"><div class="st">Recent Transactions</div></div>
+                    <div class="tc" id="rec-tbl"></div>
+                </div>
+
+                <!-- PROPERTIES -->
+                <div class="view" id="view-properties">
+                    <div class="sh">
+                        <div class="st">All Properties & Units</div>
+                        <button class="btn" onclick="openPropModal(null)">+ Property</button>
+                    </div>
+                    <div id="props-content"></div>
+                </div>
+
+                <!-- RENT LEDGER -->
+                <div class="view" id="view-rentledger">
+                    <div class="sh">
+                        <div>
+                            <div class="st">Rent Ledger</div>
+                            <div style="font-size:11px;color:var(--tx3)">Payments auto-post to Transactions</div>
+                        </div>
+                        <div style="display:flex;gap:10px;align-items:center">
+                            <select class="ms" id="l-mo"></select>
+                            <select class="ms" id="l-yr"></select>
+                            <button class="btn bsm" onclick="openUnitModal(null)">+ Unit</button>
+                        </div>
+                    </div>
+                    <div id="ledger"></div>
+                </div>
+
+                <!-- TRANSACTIONS -->
+                <div class="view" id="view-transactions">
+                    <div class="tabs" id="txn-tabs">
+                        <div class="tab active" onclick="setTF('all',this)">All</div>
+                        <div class="tab" onclick="setTF('income',this)">Income</div>
+                        <div class="tab" onclick="setTF('expense',this)">Expenses</div>
+                    </div>
+                    <div class="tc" id="all-txns"></div>
+                </div>
+
+                <div class="view" id="view-cashflow"><div id="cf"></div></div>
+                <div class="view" id="view-violations">
+                    <div class="sh">
+                        <div class="st">Violations & Inspections</div>
+                        <button class="btn" onclick="openViolModal(null)">+ Add Entry</button>
+                    </div>
+                    <div id="viols"></div>
+                </div>
+                <div class="view" id="view-taxreport"><div id="tax"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- PROPERTY MODAL -->
+    <div class="ov" id="modal-prop">
+        <div class="modal">
+            <div class="mt" id="prop-title">Add Property</div>
+            <div class="fg"><label class="fl">Property Name</label><input class="fi" type="text" id="p-name" placeholder="e.g. Oak Street Duplex"></div>
+            <div class="fr">
+                <div class="fg"><label class="fl">Address</label><input class="fi" type="text" id="p-addr"></div>
+                <div class="fg"><label class="fl">City, State</label><input class="fi" type="text" id="p-city"></div>
+            </div>
+            <div class="fr">
+                <div class="fg"><label class="fl">Purchase Price ($)</label><input class="fi" type="number" id="p-price" placeholder="0"></div>
+                <div class="fg"><label class="fl">Est. Monthly Rent ($)</label><input class="fi" type="number" id="p-rent" placeholder="0"></div>
+            </div>
+            <div class="fr">
+                <div class="fg"><label class="fl">Rent Due Day</label><input class="fi" type="number" id="p-due" value="1" min="1" max="31"></div>
+                <div class="fg"><label class="fl">Late Fee After Day</label><input class="fi" type="number" id="p-lateday" value="8" min="1" max="31"></div>
+            </div>
+            <div class="fg"><label class="fl">Late Fee Amount ($)</label><input class="fi" type="number" id="p-latefee" value="0" step="0.01"></div>
+            <div class="ma">
+                <button class="bg" onclick="closeOv('prop')">Cancel</button>
+                <button class="btn" id="prop-save-btn" onclick="saveProp()">Add Property</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- UNIT MODAL -->
+    <div class="ov" id="modal-unit">
+        <div class="modal">
+            <div class="mt" id="unit-title">Add Unit</div>
+            <div class="fr">
+                <div class="fg"><label class="fl">Property</label><select class="fs" id="u-prop"></select></div>
+                <div class="fg"><label class="fl">Unit Name</label><input class="fi" type="text" id="u-name" placeholder="e.g. Unit 1A"></div>
+            </div>
+            <div class="fr">
+                <div class="fg"><label class="fl">Lease Start</label><input class="fi" type="date" id="u-start"></div>
+                <div class="fg"><label class="fl">Lease End</label><input class="fi" type="date" id="u-end"></div>
+            </div>
+            <div class="fr">
+                <div class="fg"><label class="fl">Rent Due Day</label><input class="fi" type="number" id="u-due" value="1" min="1" max="31"></div>
+                <div class="fg"><label class="fl">Late Fee After Day</label><input class="fi" type="number" id="u-lateday" value="8" min="1" max="31"></div>
+            </div>
+            <div class="fg"><label class="fl">Late Fee Amount ($)</label><input class="fi" type="number" id="u-latefee" value="0" step="0.01"></div>
+            <div class="divider"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <div><span style="font-size:13px;font-weight:500">Tenants</span><span style="font-size:11px;color:var(--tx3);margin-left:8px">(optional)</span></div>
+                <button class="bg bsm" onclick="addTF()">+ Add Tenant</button>
+            </div>
+            <div id="t-fields"></div>
+            <div class="ma">
+                <button class="bg" onclick="closeOv('unit')">Cancel</button>
+                <button class="btn" id="unit-save-btn" onclick="saveUnit()">Save Unit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TRANSACTION MODAL -->
+    <div class="ov" id="modal-txn">
+        <div class="modal">
+            <div class="mt" id="txn-title">Add Transaction</div>
+            <div class="fr">
+                <div class="fg">
+                    <label class="fl">Type</label>
+                    <select class="fs" id="t-type" onchange="onTypeChange(null)">
+                        <option value="income">Income</option>
+                        <option value="expense">Expense</option>
+                    </select>
+                </div>
+                <div class="fg"><label class="fl">Date</label><input class="fi" type="date" id="t-date"></div>
+            </div>
+            <div class="fr">
+                <div class="fg"><label class="fl">Amount ($)</label><input class="fi" type="number" id="t-amount" placeholder="0.00" min="0" step="0.01"></div>
+                <div class="fg"><label class="fl">Property</label><select class="fs" id="t-prop" onchange="refreshUnitSel()"></select></div>
+            </div>
+            <div class="fg">
+                <label class="fl">Unit <span style="color:var(--tx3);font-weight:400;text-transform:none">(optional)</span></label>
+                <select class="fs" id="t-unit"></select>
+            </div>
+            <div class="fg"><label class="fl">Category</label><select class="fs" id="t-cat" onchange="onCatChange()"></select></div>
+            <div class="fg" id="grp-vendor" style="display:none">
+                <label class="fl">Expense Name / Vendor</label>
+                <input class="fi" type="text" id="t-vendor" placeholder="e.g. HVAC Pro LLC…">
+            </div>
+            <div class="fg"><label class="fl">Description / Notes</label><input class="fi" type="text" id="t-desc" placeholder="Brief description…"></div>
+            <div class="ma">
+                <button class="bg" onclick="closeOv('txn')">Cancel</button>
+                <button class="btn" id="txn-save-btn" onclick="saveTxn()">Save Transaction</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIOLATION MODAL -->
+    <div class="ov" id="modal-viol">
+        <div class="modal">
+            <div class="mt" id="viol-title">Add Violation / Inspection</div>
+            <div class="fg">
+                <label class="fl">Type</label>
+                <select class="fs" id="vi-type" onchange="toggleVF()">
+                    <option value="violation">Code Violation</option>
+                    <option value="inspection">Annual Inspection Fee</option>
+                    <option value="misc">Misc Expense</option>
+                </select>
+            </div>
+            <div class="fr">
+                <div class="fg"><label class="fl">Date</label><input class="fi" type="date" id="vi-date"></div>
+                <div class="fg"><label class="fl">Amount ($)</label><input class="fi" type="number" id="vi-amount" placeholder="0.00" step="0.01"></div>
+            </div>
+            <div class="fg"><label class="fl">Property</label><select class="fs" id="vi-prop"></select></div>
+            <div id="vi-extra">
+                <div class="fg"><label class="fl">Violation Code / Ref #</label><input class="fi" type="text" id="vi-code"></div>
+                <div class="fg">
+                    <label class="fl">Status</label>
+                    <select class="fs" id="vi-status">
+                        <option value="open">Open / Pending</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="contested">Contested</option>
+                    </select>
+                </div>
+            </div>
+            <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="vi-notes"></textarea></div>
+            <div class="ma">
+                <button class="bg" onclick="closeOv('viol')">Cancel</button>
+                <button class="btn" id="viol-save-btn" onclick="saveViol()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAYMENT MODAL -->
+    <div class="ov" id="modal-pay">
+        <div class="modal">
+            <div class="mt">Record Rent Payment</div>
+            <div id="pay-ctx" style="background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:12px 14px;margin-bottom:4px;font-size:12px;line-height:1.9;color:var(--tx2)"></div>
+            <div id="late-notice" style="margin-bottom:14px"></div>
+            <div class="sdiv">Charges</div>
+            <div class="fr">
+                <div class="fg"><label class="fl">Rental Amount ($)</label><input class="fi" type="number" id="py-rent" placeholder="0.00" step="0.01" oninput="recalc()"></div>
+                <div class="fg"><label class="fl">Prev. Month Balance ($)</label><input class="fi" type="number" id="py-prev" value="0" step="0.01" oninput="recalc()"></div>
+            </div>
+            <div class="fr">
+                <div class="fg">
+                    <label class="fl">Late Fee ($)</label>
+                    <input class="fi" type="number" id="py-late" value="0" step="0.01" oninput="recalc()">
+                    <div class="note" id="late-hint"></div>
+                </div>
+                <div class="fg"><label class="fl">Other Charges ($)</label><input class="fi" type="number" id="py-other" value="0" step="0.01" oninput="recalc()"></div>
+            </div>
+            <div class="sdiv">Utility Bills <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--tx3)">(charged to tenant)</span></div>
+            <div class="fr3">
+                <div class="fg"><label class="fl">Gas ($)</label><input class="fi" type="number" id="py-gas" value="0" step="0.01" oninput="recalc()"></div>
+                <div class="fg"><label class="fl">Electricity ($)</label><input class="fi" type="number" id="py-elec" value="0" step="0.01" oninput="recalc()"></div>
+                <div class="fg"><label class="fl">Water ($)</label><input class="fi" type="number" id="py-water" value="0" step="0.01" oninput="recalc()"></div>
+            </div>
+            <div class="note">Utility amounts are billed to the tenant — not logged as your expense.</div>
+            <div class="fg">
+                <label class="fl">Annual Inspection Fee ($) <span id="insp-b" class="badge by2" style="display:none">Due — February</span></label>
+                <input class="fi" type="number" id="py-insp" value="0" step="0.01" oninput="recalc()">
+            </div>
+            <div class="sdiv">Payment Summary</div>
+            <div class="hbox">
+                <div class="irow"><span class="ilbl">Total Amount Due</span><span class="mono tr" id="d-total">$0.00</span></div>
+                <div class="irow" style="padding-top:8px">
+                    <span class="ilbl">Amount Received ($)</span>
+                    <input class="fi" type="number" id="py-recv" placeholder="0.00" step="0.01" style="width:150px;text-align:right" oninput="recalc()">
+                </div>
+                <div class="irow"><span class="ilbl">Remaining Balance</span><span class="mono" id="d-rem" style="color:var(--gn)">$0.00</span></div>
+            </div>
+            <div class="fr">
+                <div class="fg"><label class="fl">Date Received</label><input class="fi" type="date" id="py-date"></div>
+                <div class="fg">
+                    <label class="fl">Mode of Payment</label>
+                    <select class="fs" id="py-mode">
+                        <option>Cash</option>
+                        <option>Check</option>
+                        <option>Zelle</option>
+                        <option>Venmo</option>
+                        <option>PayPal</option>
+                        <option>Bank Transfer</option>
+                        <option>Money Order</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="fg">
+                <label class="fl">Status</label>
+                <select class="fs" id="py-status">
+                    <option value="paid">Paid in Full</option>
+                    <option value="partial">Partially Paid</option>
+                    <option value="late">Late (Paid)</option>
+                    <option value="overdue">Unpaid / Overdue</option>
+                </select>
+            </div>
+            <div class="fg"><label class="fl">Notes / Reference #</label><input class="fi" type="text" id="py-notes" placeholder="e.g. Check #1042, Zelle ref…"></div>
+            <div class="ma">
+                <button class="bg" onclick="closeOv('pay')">Cancel</button>
+                <button class="btn" onclick="savePay()">Save Payment</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast-el"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- App Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>
