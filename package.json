@@ -1,0 +1,21 @@
+{
+  "name": "rental_tracking-2",
+  "version": "1.0.0",
+  "description": "A clean, modular rental management application for property owners and managers.",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "bugs": {
+    "url": "https://github.com/jazzleens/Rental_Tracking_2/issues"
+  },
+  "homepage": "https://github.com/jazzleens/Rental_Tracking_2#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.105.4",
+    "dotenv": "^17.4.2",
+    "vite": "^8.0.13"
+  }
+}

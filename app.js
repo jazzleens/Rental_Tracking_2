@@ -1,11 +1,6 @@
+import { supabase } from './supabase.js'
 
-const SUPABASE_URL = 'https://knmpekpurhnkvkgvtosl.supabase.co' 
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtubXBla3B1cmhua3ZrZ3Z0b3NsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzMjkxMjksImV4cCI6MjA5MzkwNTEyOX0.pBx_OtT7Z6mXrAg0j5M_dJ3r3d2AGMQrwBiGw_a7-58'
-
-const supabaseClient = supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-)
+const supabaseClient = supabase;
 // ── CONSTANTS ──────────────────────────────────────────────────
 const COLS = ['#c8a96e', '#7eb8a4', '#e07b6a', '#8b82c4', '#6ab0d4', '#b88dc4'];
 const MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -1279,4 +1274,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadViolations()
   await loadPayments()
   renderAll()
+});
+
+Object.assign(window, {
+  setView, renderAll, openTxnModal, openUnitModal, openPropModal, openViolModal,
+  saveProp, saveUnit, saveTxn, saveViol, savePay, closeOv, addTF, onTypeChange,
+  onCatChange, refreshUnitSel, recalc, deleteProp, deleteUnit, delTxn, toggleVS,
+  deleteViol, openPayModal, setTF
 });
